@@ -45,7 +45,7 @@ function pmprosla_pmpro_after_checkout( $user_id ) {
 	/**
 	 * Check that webhook exists in the settings page.
 	 */
-	if ( $webhook_url !== '' ) {
+	if ( '' !== $webhook_url ) {
 		if ( is_user_logged_in() ) {
 			$payload = array(
 				'text'        => 'New checkout: ' . $current_user->user_email,
@@ -82,9 +82,7 @@ function pmprosla_pmpro_after_checkout( $user_id ) {
 		do_action( 'pmprosla_sent', $response );
 	}
 }
-
 add_action( 'admin_menu', 'pmprosla_integration_menu' );
-
 
 /**
  *  Adds options to add users to Slack channel after checkout
@@ -157,7 +155,6 @@ function pmprosla_membership_level_after_other_settings() {
 }
 add_action( 'pmpro_membership_level_after_other_settings', 'pmprosla_membership_level_after_other_settings' );
 
-
 /**
  *  Saves the fields added in pmprosla_membership_level_after_other_settings()
  */
@@ -189,9 +186,6 @@ function pmprosla_pmpro_save_membership_level( $level_id ) {
 }
 add_action( 'pmpro_save_membership_level', 'pmprosla_pmpro_save_membership_level' );
 
-
-
-
 /**
  * Add the menu
  *
@@ -220,13 +214,18 @@ function pmprosla_integration_options_page() {
 			echo 'Something went wrong: ' . $response;
 		}
 	}
+
+	/**
+	 *
+( ! ) Notice: Use of undefined constant PMPROSLA_CLIENT_ID - assumed 'PMPROSLA_CLIENT_ID' in /app/public/wp-content/plugins/pmpro-slack/pmpro-slack.php on line 223 Call Stack #TimeMemoryFunctionLocation 10.0038366792{main}( ).../options-general.php:0 20.0043367464require_once( '/app/public/wp-admin/admin.php' ).../options-general.php:10 30.18973890760do_action( ).../admin.php:224 40.18983891136WP_Hook->do_action( ).../plugin.php:453 50.18983891136WP_Hook->apply_filters( ).../class-wp-hook.php:310 60.18983892264pmprosla_integration_options_page( ).../class-wp-hook.php:286 PMPROSLA_CLIENT_ID">
+	 */
 	?>
 	<div class="wrap">
 		<h2>Paid Memberships Pro Slack Integration</h2>
 		<form action="options.php" method="POST">
 			<a href="https://slack.com/oauth/authorize?
 				scope=users:read users:read.email channels:write channels:read
-				&client_id=<?php echo(PMPROSLA_CLIENT_ID); ?>">
+				&client_id=<?php echo PMPROSLA_CLIENT_ID; ?>">
 				<img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" 
 				srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" />
 			</a>
@@ -239,6 +238,11 @@ function pmprosla_integration_options_page() {
 <?php
 }
 add_action( 'admin_init', 'pmprosla_admin_init' );
+/**
+ * [pmprosla_admin_init description]
+ *
+ * @return [type] [description]
+ */
 function pmprosla_admin_init() {
 
 	register_setting( 'pmpro-slack-group', 'pmprosla_data', 'pmprosla_validate' );
@@ -246,6 +250,12 @@ function pmprosla_admin_init() {
 	add_settings_field( 'pmprosla_webhook', 'Webhook URL', 'pmprosla_webhook_callback', 'pmpro-slack', 'pmpro-slack-section' );
 	add_settings_field( 'pmprosla_levels', 'Levels', 'pmprosla_levels_callback', 'pmpro-slack', 'pmpro-slack-section' );
 }
+
+/**
+ * [pmprosla_section_callback description]
+ *
+ * @return [type] [description]
+ */
 function pmprosla_section_callback() {
 	echo '<ol>
 		<li>Go To https://slack.com/services/new/incoming-webhook</li>
@@ -256,7 +266,12 @@ function pmprosla_section_callback() {
 		</ol>';
 }
 
-// webhook option
+/**
+ * webhook option
+ * [pmprosla_webhook_callback description]
+ *
+ * @return [type] [description]
+ */
 function pmprosla_webhook_callback() {
 	$options = get_option( 'pmprosla_data' );
 	$webhook = '';
@@ -266,7 +281,12 @@ function pmprosla_webhook_callback() {
 	echo '<input type="url" id="webhook" name="pmprosla_data[webhook]" value="' . $webhook . '" />';
 }
 
-// levels option
+/**
+ * levels option
+ * [pmprosla_levels_callback description]
+ *
+ * @return [type] [description]
+ */
 function pmprosla_levels_callback() {
 	$options = get_option( 'pmprosla_data' );
 	$levels = pmpro_getAllLevels( true, true );
@@ -283,7 +303,13 @@ function pmprosla_levels_callback() {
 	echo '</select>';
 }
 
-// validate fields
+/**
+ * validate fields
+ * [pmprosla_validate description]
+ *
+ * @param  [type] $input [description]
+ * @return [type]        [description]
+ */
 function pmprosla_validate( $input ) {
 	$options = get_option( 'pmprosla_data' );
 	if ( ! empty( $input['webhook'] ) ) {
@@ -303,9 +329,11 @@ function pmprosla_validate( $input ) {
 	}
 
 	if ( ! empty( $input['channel_add_settings'] ) ) {
-		// Should split channels up into another array here, and switch to channel_id
+		/**
+		 * Should split channels up into another array here, and switch to channel_id
+		 */
 		$options['channel_add_settings'] = $input['channel_add_settings'];
-	} else if ( empty( $options['channel_add_settings'] ) ) {
+	} elseif ( empty( $options['channel_add_settings'] ) ) {
 		$options['channel_add_settings'] = [ [] ];
 	}
 
@@ -316,11 +344,16 @@ function pmprosla_validate( $input ) {
 	return $options;
 }
 
-/*
-Function to add links to the plugin row meta
-*/
+/**
+ * Function to add links to the plugin row meta
+ * [pmprosla_plugin_row_meta description]
+ *
+ * @param  [type] $links [description]
+ * @param  [type] $file  [description]
+ * @return [type]        [description]
+ */
 function pmprosla_plugin_row_meta( $links, $file ) {
-	if ( strpos( $file, 'pmpro-slack.php' ) !== false ) {
+	if ( false !== strpos( $file, 'pmpro-slack.php' ) ) {
 		$new_links = array(
 			'<a href="' . esc_url( 'http://www.paidmembershipspro.com/add-ons/plus/pmpro-slack/' ) . '" title="' . esc_attr( __( 'View Documentation', 'pmpro' ) ) . '">' . __( 'Docs', 'pmpro' ) . '</a>',
 			'<a href="' . esc_url( 'http://paidmembershipspro.com/support/' ) . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'pmpro' ) ) . '">' . __( 'Support', 'pmpro' ) . '</a>',
